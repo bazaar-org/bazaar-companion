@@ -17,7 +17,7 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as AppMenu from 'resource:///org/gnome/shell/ui/appMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
@@ -28,6 +28,8 @@ import { showRemoveDialog } from './removeDialog.js';
 
 export default class BazaarIntegration extends Extension {
     enable() {
+        this.initTranslations();
+
         this._originalUpdateDetailsVisibility = AppMenu.AppMenu.prototype._updateDetailsVisibility;
         this._originalSetApp = AppMenu.AppMenu.prototype.setApp;
         const extension = this;
@@ -76,7 +78,7 @@ export default class BazaarIntegration extends Extension {
             }
 
             if (!this._removeItem) {
-                this._removeItem = new PopupMenu.PopupMenuItem('Uninstall');
+                this._removeItem = new PopupMenu.PopupMenuItem(_('Uninstall'));
                 this._removeItem.connect('activate', () => {
                     showRemoveDialog(this._app);
                 });

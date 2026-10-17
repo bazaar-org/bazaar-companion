@@ -26,6 +26,7 @@ import St from 'gi://St';
 import Clutter from 'gi://Clutter';
 import Cairo from 'cairo';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
+import { gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 async function getInstalledRefs(appId) {
     const refs = [];
@@ -316,16 +317,16 @@ function showSimpleDialog(title, subtitle, buttonLabel, onConfirm) {
         });
 
         const { row: keepRow, radio: keepRadio } = makeRadioRow(
-            'Keep Data',
-            'Allow restoring settings and content',
+            _('Keep Data'),
+            _('Allow restoring settings and content'),
             radioGroup,
             true
         );
         keepDataRadio = keepRadio;
 
         const { row: deleteRow } = makeRadioRow(
-            'Delete Data',
-            'Permanently remove app data to save space',
+            _('Delete Data'),
+            _('Permanently remove app data to save space'),
             radioGroup,
             false
         );
@@ -342,7 +343,7 @@ function showSimpleDialog(title, subtitle, buttonLabel, onConfirm) {
 
         dialog.setButtons([
             {
-                label: 'Cancel',
+                label: _('Cancel'),
                 action: () => dialog.close(),
                 key: Clutter.KEY_Escape,
             },
@@ -372,31 +373,35 @@ function showSimpleDialog(title, subtitle, buttonLabel, onConfirm) {
 export async function showRemoveDialog(app) {
     if (!app) return;
 
-    const appName = app.get_name() ?? 'this app';
+    const appName = app.get_name() ?? _('this app');
     const appId = app.get_id()?.replace(/\.desktop$/, '');
     if (!appId) return;
 
     const installedRefs = await getInstalledRefs(appId);
 
     if (installedRefs.length === 0) {
-        showNotification('Cannot Uninstall App', `${appName} does not appear to be installed as a Flatpak.`, true);
+        showNotification(
+            _('Cannot Uninstall App'),
+            _('%s does not appear to be installed as a Flatpak.').replace('%s', appName),
+            true
+        );
         return;
     }
 
     if (installedRefs.length > 1) {
         showSimpleDialog(
-            `Remove ${appName}?`,
-            `${appName} is installed in multiple locations. Please use Bazaar to manage it.`,
-            'OK',
+            _('Remove %s?').replace('%s', appName),
+            _('%s is installed in multiple locations. Please use Bazaar to manage it.').replace('%s', appName),
+            _('OK'),
             null
         );
         return;
     }
 
     showSimpleDialog(
-        `Remove ${appName}?`,
-        `It will not be possible to use ${appName} after it is uninstalled.`,
-        'Uninstall',
+        _('Remove %s?').replace('%s', appName),
+        _('It will not be possible to use %s after it is uninstalled.').replace('%s', appName),
+        _('Uninstall'),
         async (deleteData) => {
             const scope = installedRefs[0];
             const appIcons = _findAppIcons(appId);
@@ -410,10 +415,17 @@ export async function showRemoveDialog(app) {
             _stopUninstallFeedbacks(handles);
             if (success) {
                 _hideAppIcons(appIcons);
-                showNotification(`${appName} Uninstalled`, `${appName} was successfully removed.`);
+                showNotification(
+                    _('%s Uninstalled').replace('%s', appName),
+                    _('%s was successfully removed.').replace('%s', appName)
+                );
             } else {
                 _enableAppIcons(appIcons);
-                showNotification(`Failed to Remove ${appName}`, `Could not uninstall ${appName}. Try using Bazaar instead.`, true);
+                showNotification(
+                    _('Failed to Remove %s').replace('%s', appName),
+                    _('Could not uninstall %s. Try using Bazaar instead.').replace('%s', appName),
+                    true
+                );
             }
         }
     );

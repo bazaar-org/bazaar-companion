@@ -8,12 +8,27 @@ set -e
 
 cd "$( cd "$( dirname "$0" )" && pwd )"
 
+UUID="bazaar-integration@kolunmi.github.io"
+
+echo "Compiling translations..."
+for po_file in po/*.po; do
+    lang=$(basename "$po_file" .po)
+    locale_dir="src/locale/${lang}/LC_MESSAGES"
+    mkdir -p "$locale_dir"
+    msgfmt -o "${locale_dir}/${UUID}.mo" "$po_file"
+    echo "  Compiled: ${lang}"
+done
+
 echo "Packing extension..."
 gnome-extensions pack src \
     --force \
     --extra-source="LICENSE" \
     --extra-source="README.md" \
-    --extra-source="removeDialog.js"
+    --extra-source="removeDialog.js" \
+    --extra-source="locale"
+
+echo "Cleaning up compiled locale files from src/..."
+rm -rf src/locale
 
 echo "Packing Done!"
 
