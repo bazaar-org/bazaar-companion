@@ -27,6 +27,22 @@ import Clutter from 'gi://Clutter';
 import Cairo from 'cairo';
 import * as ModalDialog from 'resource:///org/gnome/shell/ui/modalDialog.js';
 
+// Compatibility helper: GNOME Shell 51 removed the deprecated `vertical`
+// property from St.BoxLayout in favour of `orientation`. Try the new
+// property first and fall back to the old one on older Shell versions.
+function makeBoxLayout(vertical, props = {}) {
+    try {
+        return new St.BoxLayout({
+            ...props,
+            orientation: vertical
+                ? Clutter.Orientation.VERTICAL
+                : Clutter.Orientation.HORIZONTAL,
+        });
+    } catch (e) {
+        return new St.BoxLayout({ ...props, vertical });
+    }
+}
+
 async function getInstalledRefs(appId) {
     const refs = [];
     for (const scope of ['--user', '--system']) {
@@ -235,13 +251,11 @@ function makeRadioRow(title, subtitle, radioGroup, isActive) {
         x_expand: true,
     });
 
-    const inner = new St.BoxLayout({
-        vertical: false,
+    const inner = makeBoxLayout(false, {
         x_expand: true,
     });
 
-    const textBox = new St.BoxLayout({
-        vertical: true,
+    const textBox = makeBoxLayout(true, {
         x_expand: true,
         style_class: 'bazaar-remove-dialog-radio-text',
     });
@@ -310,8 +324,7 @@ function showSimpleDialog(title, subtitle, buttonLabel, onConfirm) {
     if (onConfirm) {
         const radioGroup = [];
 
-        const list = new St.BoxLayout({
-            vertical: true,
+        const list = makeBoxLayout(true, {
             style_class: 'bazaar-remove-dialog-list',
         });
 
